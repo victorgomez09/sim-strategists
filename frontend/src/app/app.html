@@ -1,0 +1,17 @@
+<div class="flex flex-col gap-2 w-full h-full">
+  <app-session-info class="w-full"></app-session-info>
+  <app-delta-bars class="w-full"></app-delta-bars>
+  <app-driving-timing class="w-full"></app-driving-timing>
+  
+  <div class="grid grid-cols-2">
+    <div class="flex flex-row">
+      <app-wheel-info />
+      <app-wheel-history />
+    </div>
+
+    <div class="flex">
+      <app-fuel-strategy class="w-full"></app-fuel-strategy>
+      <app-input-efficiency class="w-full" />
+    </div>
+  </div>
+</div>
