@@ -2,6 +2,7 @@ export interface LMU_Snapshot {
   session: LMU_Session;
   car: LMU_Car;
   leaderboard: LMU_LeaderboardEntry[];
+  relative: LMU_Relative;
 }
 
 export interface LMU_Session {
@@ -43,8 +44,12 @@ export interface LMU_FuelStrategy {
   needsRefuel: boolean;      // True si el combustible no llega al final
 }
 
+type SectorStatus = 'purple' | 'green' | 'yellow' | 'none';
+
 export interface LMU_LeaderboardEntry {
   position: number;          // Puesto en carrera (Rank)
+  classPosition: number;
+  class: string;
   driverName: string;
   carName: string;
   gapToLeader: string;       // "LEADER" o "+X.Xs"
@@ -53,4 +58,31 @@ export interface LMU_LeaderboardEntry {
   bestLap: string;           // "MM:SS.ms"
   isPlayer: boolean;         // ¿Es este vehículo el del usuario?
   inPits: boolean;           // ¿Está este piloto en boxes?
+  pitStopCount: number;
+  lastPitLap: number;       // En qué vuelta paró por última vez
+  tyreAge: number;          // Vueltas que lleva con el neumático actual
+  tyreCompound: string;
+  laps: number;              // Vueltas completadas
+  sectors: {
+    s1: SectorStatus; s2: SectorStatus; s3: SectorStatus;
+  };
+  positionChange: number;   // Diferencia respecto a la salida (ej: +2, -1)
+  isFastestLap: boolean;
+}
+
+export interface LMU_Relative {
+  position: number;          // Posición actual en carrera
+  delta: string;             // El Delta de tiempo real (ej: "-0.15" o "+0.32")
+  bestLap: string;           // Tu mejor vuelta personal formateada
+  
+  // Datos de los pilotos cercanos (opcional pero muy útil para el HUD)
+  ahead?: LMU_RelativeEntry;  
+  behind?: LMU_RelativeEntry;
+}
+
+export interface LMU_RelativeEntry {
+  driverName: string;
+  gap: string;               // Tiempo respecto al jugador
+  isClassLeader: boolean;    // Útil para saber si el que viene es de otra categoría
+  color?: string;            // Color de la categoría (GTE, Hypercar, etc)
 }

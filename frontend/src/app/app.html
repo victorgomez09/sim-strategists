@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-2 w-full h-full">
   <app-session-info class="w-full" [session]="lmuData()?.session"></app-session-info>
-  <app-delta-bars class="w-full"></app-delta-bars>
-  <app-driving-timing class="w-full"></app-driving-timing>
+  <app-delta-bars class="w-full" [relative]="lmuData()?.relative"></app-delta-bars>
+  <app-driving-timing class="w-full" [leaderboard]="lmuData()?.leaderboard || []"></app-driving-timing>
   
   <div class="grid grid-cols-2">
     <div class="flex flex-row">

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, input, Input } from '@angular/core';
+import { LMU_Relative } from '../../models/shared-memory';
 
 @Component({
   selector: 'app-delta-bars',
@@ -8,24 +9,31 @@ import { Component, Input } from '@angular/core';
   styleUrl: './delta-bars.css',
 })
 export class DeltaBars {
-  @Input() delta: number = -0.128;
-  @Input() bestLap: string = '1:42.503';
+  relative = input<LMU_Relative>();
 
-  // Calculamos el color y el ancho
+  get delta(): number {
+    return parseFloat(this.relative()?.delta || '0');
+  }
+
+  get bestLap(): string {
+    return this.relative()?.bestLap || '--:--.---';
+  }
+
+  get barWidth(): string {
+    // Limitamos el delta a un máximo de 1 segundo para el cálculo visual
+    const absDelta = Math.min(Math.abs(this.delta), 1.0);
+    return absDelta * 100 + '%';
+  }
+
   get deltaColorClass(): string {
-    return this.delta <= 0 ? 'text-success' : 'text-error';
+    if (this.delta < 0) return 'text-success'; // Ganando tiempo (Verde)
+    if (this.delta > 0) return 'text-error'; // Perdiendo tiempo (Rojo)
+    return 'text-white';
   }
 
   get barColorClass(): string {
     return this.delta <= 0
-      ? 'bg-success shadow-[0_0_15px_rgba(34,197,94,0.6)]'
-      : 'bg-error shadow-[0_0_15px_rgba(239,68,68,0.6)]';
-  }
-
-  // Mapeamos el delta (-1.0s a +1.0s) a porcentaje (0% a 50%) para cada lado
-  get barWidth(): string {
-    const limit = 1.0; // El límite visual de la barra es 1 segundo
-    const absDelta = Math.min(Math.abs(this.delta), limit);
-    return (absDelta / limit) * 50 + '%';
+      ? 'bg-success shadow-[0_0_15px_#1fb271]'
+      : 'bg-error shadow-[0_0_15px_#f87272]';
   }
 }

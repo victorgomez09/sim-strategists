@@ -3,27 +3,62 @@ import { LeaderboardEntry } from "./types/lmu-shared";
 
 const FILE_MAP_READ = 0x0004;
 const kernel32 = koffi.load("kernel32.dll");
-const OpenFileMappingA = kernel32.func("void* __stdcall OpenFileMappingA(uint32_t, int, string)");
-const MapViewOfFile = kernel32.func("void* __stdcall MapViewOfFile(void*, uint32_t, uint32_t, uint32_t, size_t)");
+const OpenFileMappingA = kernel32.func(
+  "void* __stdcall OpenFileMappingA(uint32_t, int, string)",
+);
+const MapViewOfFile = kernel32.func(
+  "void* __stdcall MapViewOfFile(void*, uint32_t, uint32_t, uint32_t, size_t)",
+);
 
 export class LMUConnector {
-  private readonly pointers: any = { sco: null, tel: null, rul: null, ext: null };
+  private readonly pointers: any = {
+    sco: null,
+    tel: null,
+    rul: null,
+    ext: null,
+  };
 
   constructor() {
     this.init();
   }
 
   private init() {
-    this.pointers.sco = MapViewOfFile(OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Scoring$"), FILE_MAP_READ, 0, 0, 0);
-    this.pointers.tel = MapViewOfFile(OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Telemetry$"), FILE_MAP_READ, 0, 0, 0);
-    this.pointers.rul = MapViewOfFile(OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Rules$"), FILE_MAP_READ, 0, 0, 0);
-    this.pointers.ext = MapViewOfFile(OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Extended$"), FILE_MAP_READ, 0, 0, 0);
+    this.pointers.sco = MapViewOfFile(
+      OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Scoring$"),
+      FILE_MAP_READ,
+      0,
+      0,
+      0,
+    );
+    this.pointers.tel = MapViewOfFile(
+      OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Telemetry$"),
+      FILE_MAP_READ,
+      0,
+      0,
+      0,
+    );
+    this.pointers.rul = MapViewOfFile(
+      OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Rules$"),
+      FILE_MAP_READ,
+      0,
+      0,
+      0,
+    );
+    this.pointers.ext = MapViewOfFile(
+      OpenFileMappingA(FILE_MAP_READ, 0, "$rFactor2SMMP_Extended$"),
+      FILE_MAP_READ,
+      0,
+      0,
+      0,
+    );
   }
 
   // --- SCORING: Datos de sesión y competidores ---
   public getScoringData() {
     if (!this.pointers.sco) return null;
-    const buf = Buffer.from(koffi.decode(this.pointers.sco, "uint8_t", 65536) as Uint8Array);
+    const buf = Buffer.from(
+      koffi.decode(this.pointers.sco, "uint8_t", 65536) as Uint8Array,
+    );
 
     const numVehicles = buf.readInt32LE(708);
     const vehicles = [];
@@ -35,12 +70,29 @@ export class LMUConnector {
         mID: buf.readInt32LE(offset),
         mRank: buf.readInt8(offset + 4),
         mTotalLaps: buf.readInt32LE(offset + 32),
+        // Sectores de la última vuelta
+        mLastS1: buf.readDoubleLE(offset + 80),
+        mLastS2: buf.readDoubleLE(offset + 88),
+        // El S3 suele ser mLastLapTime - (mLastS1 + mLastS2)
         mLastLapTime: buf.readDoubleLE(offset + 152),
         mBestLapTime: buf.readDoubleLE(offset + 160),
-        mDriverName: buf.slice(offset + 212, offset + 276).toString("utf8").split("\0")[0].trim(),
-        mVehicleName: buf.slice(offset + 276, offset + 340).toString("utf8").split("\0")[0].trim(),
+        // Mejores sectores personales
+        mBestS1: buf.readDoubleLE(offset + 96),
+        mBestS2: buf.readDoubleLE(offset + 104),
+        mDriverName: buf
+          .slice(offset + 212, offset + 276)
+          .toString("utf8")
+          .split("\0")[0]
+          .trim(),
+        mVehicleName: buf
+          .slice(offset + 276, offset + 340)
+          .toString("utf8")
+          .split("\0")[0]
+          .trim(),
         mInPits: buf.readInt8(offset + 384) === 1,
         mTimeBehindLeader: buf.readDoubleLE(offset + 368),
+        mTimeBehindNext: buf.readDoubleLE(offset + 376),
+        mNumPitstops: buf.readInt32LE(offset + 320),
       });
     }
 
@@ -52,6 +104,11 @@ export class LMUConnector {
       ambientTemp: buf.readDoubleLE(240),
       trackTemp: buf.readDoubleLE(248),
       rainIntensity: buf.readDoubleLE(256),
+      // Récords de la sesión para el color púrpura
+      sessionBestLap: buf.readDoubleLE(160),
+      sessionBestS1: buf.readDoubleLE(176),
+      sessionBestS2: buf.readDoubleLE(184),
+      sessionBestS3: buf.readDoubleLE(192),
       numVehicles,
       vehicles,
     };
@@ -60,28 +117,47 @@ export class LMUConnector {
   // --- TELEMETRY: Tu coche (Física) ---
   public getTelemetryData() {
     if (!this.pointers.tel) return null;
-    const buf = Buffer.from(koffi.decode(this.pointers.tel, "uint8_t", 32768) as Uint8Array);
+    const buf = Buffer.from(
+      koffi.decode(this.pointers.tel, "uint8_t", 32768) as Uint8Array,
+    );
 
     return {
-      mID: buf.readInt32LE(8), 
+      mID: buf.readInt32LE(8),
       gear: buf.readInt32LE(140),
       rpm: buf.readDoubleLE(144),
       fuel: buf.readDoubleLE(224),
       fuelCapacity: buf.readDoubleLE(232),
-      speed: Math.sqrt(Math.pow(buf.readDoubleLE(56), 2) + Math.pow(buf.readDoubleLE(72), 2)) * 3.6,
+      speed:
+        Math.sqrt(
+          Math.pow(buf.readDoubleLE(56), 2) + Math.pow(buf.readDoubleLE(72), 2),
+        ) * 3.6,
       tyreTemps: {
-        fl: buf.readDoubleLE(400), fr: buf.readDoubleLE(408),
-        rl: buf.readDoubleLE(416), rr: buf.readDoubleLE(424),
+        fl: buf.readDoubleLE(400),
+        fr: buf.readDoubleLE(408),
+        rl: buf.readDoubleLE(416),
+        rr: buf.readDoubleLE(424),
       },
-      tyreWear: [buf.readDoubleLE(448), buf.readDoubleLE(456), buf.readDoubleLE(464), buf.readDoubleLE(472)],
-      brakeTemps: [buf.readDoubleLE(280), buf.readDoubleLE(288), buf.readDoubleLE(296), buf.readDoubleLE(304)],
+      tyreWear: [
+        buf.readDoubleLE(448),
+        buf.readDoubleLE(456),
+        buf.readDoubleLE(464),
+        buf.readDoubleLE(472),
+      ],
+      brakeTemps: [
+        buf.readDoubleLE(280),
+        buf.readDoubleLE(288),
+        buf.readDoubleLE(296),
+        buf.readDoubleLE(304),
+      ],
     };
   }
 
   // --- RULES: Banderas y Estado de Pista ---
   public getRulesData() {
     if (!this.pointers.rul) return null;
-    const buf = Buffer.from(koffi.decode(this.pointers.rul, "uint8_t", 16384) as Uint8Array);
+    const buf = Buffer.from(
+      koffi.decode(this.pointers.rul, "uint8_t", 16384) as Uint8Array,
+    );
     return {
       trackFlag: buf.readInt32LE(12), // 0: Green, 1: Yellow, 2: Blue, 3: Red
       sectorFlags: [buf.readInt8(20), buf.readInt8(21), buf.readInt8(22)],
@@ -92,7 +168,9 @@ export class LMUConnector {
   // --- EXTENDED: Datos Adicionales (Electrónica/Pit) ---
   public getExtendedData() {
     if (!this.pointers.ext) return null;
-    const buf = Buffer.from(koffi.decode(this.pointers.ext, "uint8_t", 16384) as Uint8Array);
+    const buf = Buffer.from(
+      koffi.decode(this.pointers.ext, "uint8_t", 16384) as Uint8Array,
+    );
     return {
       isPlayerInPit: buf.readInt8(20) === 1,
       lapDistance: buf.readDoubleLE(40),
@@ -109,12 +187,15 @@ export class LMUConnector {
     if (!scoring || !scoring.vehicles.length) return [];
 
     const playerID = telemetry ? telemetry.mID : -1;
-    const sortedVehicles = [...scoring.vehicles].sort((a, b) => a.mRank - b.mRank);
+    const sortedVehicles = [...scoring.vehicles].sort(
+      (a, b) => a.mRank - b.mRank,
+    );
 
     return sortedVehicles.map((v, index) => {
       let gapToAhead = "---";
       if (index > 0) {
-        const diff = v.mTimeBehindLeader - sortedVehicles[index - 1].mTimeBehindLeader;
+        const diff =
+          v.mTimeBehindLeader - sortedVehicles[index - 1].mTimeBehindLeader;
         gapToAhead = diff > 0 ? `+${diff.toFixed(1)}s` : "---";
       }
 
@@ -122,7 +203,8 @@ export class LMUConnector {
         position: v.mRank,
         driverName: v.mDriverName,
         carName: v.mVehicleName,
-        gapToLeader: v.mRank === 1 ? "LEADER" : `+${v.mTimeBehindLeader.toFixed(1)}s`,
+        gapToLeader:
+          v.mRank === 1 ? "LEADER" : `+${v.mTimeBehindLeader.toFixed(1)}s`,
         gapToAhead: gapToAhead,
         lastLap: this.formatLapTime(v.mLastLapTime),
         bestLap: this.formatLapTime(v.mBestLapTime),
