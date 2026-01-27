@@ -1,8 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
-import { startTelemetryLoop } from "./lmusdk/parser/session-info";
-import { startDeltaLoop } from "./lmusdk/parser/delta-bar";
+import { getFullSnapshot } from "./lmusdk/lmu-bridge";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -53,8 +52,13 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
-    startTelemetryLoop(mainWindow);
-    startDeltaLoop(mainWindow);
+
+    setInterval(() => {
+      const data = getFullSnapshot();
+      if (data) {
+        mainWindow.webContents.send("telemetry-all", data);
+      }
+    }, 100);
   }
 });
 
