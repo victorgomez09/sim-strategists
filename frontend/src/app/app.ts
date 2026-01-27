@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { SessionInfo } from "./components/session-info/session-info";
 import { DeltaBars } from "./components/delta-bars/delta-bars";
 import { DrivingTiming } from "./components/driving-timing/driving-timing";
@@ -6,6 +6,7 @@ import { WheelInfo } from "./components/wheel-info/wheel-info";
 import { WheelHistory } from "./components/wheel-history/wheel-history";
 import { FuelStrategy } from './components/fuel-strategy/fuel-strategy';
 import { InputEfficiency } from "./components/input-efficiency/input-efficiency";
+import { SharedMemory } from './services/shared-memory';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,14 @@ import { InputEfficiency } from "./components/input-efficiency/input-efficiency"
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('frontend');
+  
+  private readonly sharedMemoryService = inject(SharedMemory);
+  
+  protected readonly lmuData = this.sharedMemoryService.data;
+
+  ngOnInit(): void {
+    console.log("lmuData", this.lmuData());
+  }
 }

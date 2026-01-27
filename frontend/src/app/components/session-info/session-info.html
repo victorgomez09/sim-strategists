@@ -1,31 +1,21 @@
 <div class="card w-full bg-base-300">
         <div class="card-body p-0 w-full">
-                <div class="flex flex-wrap lg:flex-nowrap items-stretch min-h-20">
+                <div class="flex flex-wrap flex-1 lg:flex-nowrap items-stretch min-h-20 w-full">
                         <div class="flex-none flex items-center px-6 border-r border-white/5 bg-neutral/30 min-w-75">
                                 <div class="flex flex-col">
                                         <div class="flex items-center gap-2 mb-1">
                                                 <span class="badge badge-primary badge-sm font-black italic">{{
-                                                        session.type
+                                                        session()?.type
                                                         }}</span>
-                                                <div class="flex items-center gap-1 text-[10px] font-mono opacity-50">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3"
-                                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                                stroke-width="2">
-                                                                <path
-                                                                        d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                                                                <circle cx="12" cy="10" r="3" />
-                                                        </svg>
-                                                        {{ session.layout }}
-                                                </div>
                                         </div>
                                         <h2
                                                 class="text-2xl font-black tracking-tighter uppercase italic text-white leading-none">
-                                                {{ session.trackName }}
+                                                {{ session()?.track }}
                                         </h2>
                                 </div>
                         </div>
 
-                        <div class="flex-1 flex items-center justify-around px-8 bg-base-200/50">
+                        <div class="flex items-center justify-around px-8 bg-base-200/50">
                                 <div class="flex flex-col items-center">
                                         <div class="flex items-center gap-1.5 opacity-40 mb-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5"
@@ -39,13 +29,13 @@
                                         </div>
                                         <div class="flex items-baseline gap-1">
                                                 <span class="text-3xl font-mono font-black text-white">{{
-                                                        session.timeRemaining
+                                                        session()?.timeRemaining
                                                         }}</span>
                                                 <span class="text-xs opacity-40 font-mono">EST</span>
                                         </div>
                                 </div>
 
-                                <div class="h-10 w-px bg-white/10"></div>
+                                <!-- <div class="h-10 w-px bg-white/10"></div>
 
                                 <div class="flex flex-col items-center">
                                         <div class="flex items-center gap-1.5 opacity-40 mb-1">
@@ -58,14 +48,7 @@
                                                 <span class="text-[10px] font-bold uppercase tracking-widest">Laps
                                                         Remaining</span>
                                         </div>
-                                        <div class="flex items-baseline gap-2">
-                                                <span class="text-3xl font-mono font-black text-primary">{{
-                                                        session.lapsRemaining }}</span>
-                                                <span class="text-xs opacity-50 italic">/ {{ session.estimatedTotalLaps
-                                                        }}
-                                                        Total</span>
-                                        </div>
-                                </div>
+                                </div> -->
                         </div>
 
                         <div class="flex-none flex items-center gap-8 px-8 border-l border-white/5">
@@ -81,7 +64,7 @@
                                                 </svg>
                                                 Air
                                         </div>
-                                        <div class="stat-value text-xl font-mono">{{ session.airTemp }}°C</div>
+                                        <div class="stat-value text-xl font-mono">{{ session()?.airTemp }}°C</div>
                                         <div
                                                 class="stat-desc text-[9px] font-mono text-primary flex items-center gap-0.5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5"
@@ -89,7 +72,7 @@
                                                         stroke-width="3">
                                                         <path d="m18 15-6-6-6 6" />
                                                 </svg>
-                                                {{ session.airTempDelta }}
+                                                {{ session()?.airTempDelta }}
                                         </div>
                                 </div>
 
@@ -103,7 +86,7 @@
                                                 </svg>
                                                 Track
                                         </div>
-                                        <div class="stat-value text-xl font-mono text-success">{{ session.trackTemp }}°C
+                                        <div class="stat-value text-xl font-mono text-success">{{ session()?.trackTemp }}°C
                                         </div>
                                         <div
                                                 class="stat-desc text-[9px] font-mono text-success flex items-center gap-0.5">
@@ -112,7 +95,7 @@
                                                         stroke-width="3">
                                                         <path d="m6 9 6 6 6-6" />
                                                 </svg>
-                                                {{ session.trackTempDelta }}
+                                                {{ session()?.trackTempDelta }}
                                         </div>
                                 </div>
 
@@ -129,9 +112,8 @@
                                                 </svg>
                                                 Rain
                                         </div>
-                                        <div class="stat-value text-xl font-mono">{{ session.rainChance }}%</div>
                                         <div class="stat-desc text-[9px] font-bold uppercase tracking-tighter">{{
-                                                session.rainStatus }}</div>
+                                                session()?.rain }}</div>
                                 </div>
                         </div>
 
@@ -152,7 +134,7 @@
                 </div>
 
                 <progress class="progress progress-primary w-full h-1 rounded-none bg-transparent"
-                        [value]="session.sessionProgress" max="100"></progress>
+                        [value]="session()?.sessionProgress" max="100"></progress>
 
         </div>
 </div>
