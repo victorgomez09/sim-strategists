@@ -12,6 +12,15 @@ class SimData:
         self.current_lap_cons = 0.0
         self.fuel_to_add = 0.0
         self.laps_estimated = 0.0
+
+        # sesion
+        self.track_name = ""
+        self.session_type = ""
+        self.ambient_temp = 0.0
+        self.track_temp = 0.0
+        self.weather = ""
+        self.rain_percent = 0.0
+        self.wet_percent = 0.0
         
         # Estado de conexión
         self.is_connected = False
